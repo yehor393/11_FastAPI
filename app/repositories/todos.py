@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+from sqlalchemy import and_, extract
 from fastapi import HTTPException
 from models.todo import TodoDB
 
@@ -36,3 +38,24 @@ class TodoRepo():
         self.db.delete(todo_item)
         self.db.commit()
         return True
+
+    def search_contacts(self, first_name, last_name, email):
+        query = self.db.query(TodoDB)
+        if first_name:
+            query = query.filter(TodoDB.first_name.contains(first_name))
+        if last_name:
+            query = query.filter(TodoDB.last_name.contains(last_name))
+        if email:
+            query = query.filter(TodoDB.email.contains(email))
+        return query.all()
+
+    def get_upcoming_birthdays(self):
+        today = datetime.today()
+        dates = [(today + timedelta(days=i)).date() for i in range(7)]
+
+        return self.db.query(TodoDB).filter(
+            and_(
+                extract('month', TodoDB.birthday).in_([date.month for date in dates]),
+                extract('day', TodoDB.birthday).in_([date.day for date in dates])
+            )
+        ).all()

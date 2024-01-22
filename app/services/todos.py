@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from repositories.todos import TodoRepo
 from schemas.todo import Todo, TodoCreate, TodoUpdate
-from models.todo import TodoDB
 
 
 class TodoServices():
@@ -36,3 +35,13 @@ class TodoServices():
             raise HTTPException(status_code=404, detail="Todo not found")
         self.repo.delete(id)
         return True
+
+    def search_contacts(self, first_name, last_name, email) -> Todo:
+        query = self.repo.search_contacts(first_name, last_name, email)
+        if not query:
+            raise HTTPException(status_code=404, detail="Todo not found")
+        return query
+
+    def get_upcoming_birthdays(self):
+        birthdays = self.repo.get_upcoming_birthdays()
+        return [Todo.from_orm(contact) for contact in birthdays]

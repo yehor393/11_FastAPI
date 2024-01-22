@@ -1,8 +1,10 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 from schemas.todo import Todo, TodoCreate, TodoUpdate
 from dependencies.database import get_db, SessionLocal
 from services.todos import TodoServices
-
+from fastapi import Query
 
 router = APIRouter()
 
@@ -16,6 +18,22 @@ async def list_todos(db: SessionLocal = Depends(get_db)) -> list[Todo]:
 @router.get("/{id}")
 async def get_detail(id: int, db: SessionLocal = Depends(get_db)) -> Todo:
     todo_item = TodoServices(db=db).get_by_id(id)
+    return todo_item
+
+
+@router.get("/contacts/search")
+async def search_contacts(
+    first_name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    email: Optional[str] = None,
+    db: SessionLocal = Depends(get_db)
+) -> list[Todo]:
+    return TodoServices(db=db).search_contacts(first_name, last_name, email)
+
+
+@router.get("/contacts/upcoming_birthdays")
+async def get_upcoming_birthdays(db: SessionLocal = Depends(get_db)):
+    todo_item = TodoServices(db=db).get_upcoming_birthdays()
     return todo_item
 
 
@@ -35,3 +53,5 @@ async def update_todo(id: int, todo_item: TodoUpdate, db: SessionLocal = Depends
 async def delete_todo(id: int, db: SessionLocal = Depends(get_db)) -> bool:
     TodoServices(db=db).delete(id)
     return True
+
+
